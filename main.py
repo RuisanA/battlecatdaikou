@@ -840,9 +840,7 @@ class TicketView(ui.View):
             if staff_role not in interaction.user.roles and not interaction.user.guild_permissions.administrator:
                 await interaction.response.send_message("この操作を行う権限がありません。", ephemeral=True)
                 return
-
-        await interaction.response.defer()
-
+                
         embed = discord.Embed(
             title="チケットを閉じる",
             description="本当にチケットを閉じますか？",
@@ -863,9 +861,7 @@ class TicketView2(ui.View):
             if staff_role not in interaction.user.roles and not interaction.user.guild_permissions.administrator:
                 await interaction.response.send_message("この操作を行う権限がありません。", ephemeral=True)
                 return
-
-        await interaction.response.defer()
-        
+                
         embed = discord.Embed(
             title="チケットを閉じる",
             description="本当にチケットを閉じますか？",
