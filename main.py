@@ -89,7 +89,7 @@ class CloudEditor:
         url=f"{self.SAVE_URL}/v2/transfers/{self.transfer_code}/reception"
         payload={
         "clientInfo":{
-        "client":{"version":"15.2.1","countryCode":"ja"},
+        "client":{"version":"15.3.0","countryCode":"ja"},
         "os":{"type":"android","version":"13"},
         "device":{"model":"SM-S918B"}
         },
@@ -131,7 +131,7 @@ class CloudEditor:
             "accountCode":inq,
             "password":self.password,
             "clientInfo":{
-            "client":{"version":"15.2.1","countryCode":"ja"},
+            "client":{"version":"15.3.0","countryCode":"ja"},
             "os":{"type":"android","version":"9"},
             "device":{"model":"SM-G955F"}
             },
@@ -606,7 +606,7 @@ class CloudEditor:
         url = f"{self.SAVE_URL}/v2/transfers/{self.transfer_code}/reception"
         payload = {
             "clientInfo": {
-                "client": {"version": "15.2.1", "countryCode": "ja"},
+                "client": {"version": "15.3.0", "countryCode": "ja"},
                 "os": {"type": "android", "version": "13"},
                 "device": {"model": "SM-S918B"}
             },
@@ -646,7 +646,7 @@ class CloudEditor:
                 "accountCode": inq,
                 "password": self.password,
                 "clientInfo": {
-                    "client": {"version": "15.2.1", "countryCode": "ja"},
+                    "client": {"version": "15.3.0", "countryCode": "ja"},
                     "os": {"type": "android", "version": "9"},
                     "device": {"model": "SM-G955F"}
                 },
@@ -840,7 +840,7 @@ class TicketView(ui.View):
             if staff_role not in interaction.user.roles and not interaction.user.guild_permissions.administrator:
                 await interaction.response.send_message("この操作を行う権限がありません。", ephemeral=True)
                 return
-                
+
         embed = discord.Embed(
             title="チケットを閉じる",
             description="本当にチケットを閉じますか？",
@@ -861,7 +861,7 @@ class TicketView2(ui.View):
             if staff_role not in interaction.user.roles and not interaction.user.guild_permissions.administrator:
                 await interaction.response.send_message("この操作を行う権限がありません。", ephemeral=True)
                 return
-                
+        
         embed = discord.Embed(
             title="チケットを閉じる",
             description="本当にチケットを閉じますか？",
