@@ -11,6 +11,7 @@ import hmac
 import hashlib
 import requests
 import secrets
+import random
 from typing import Any, Optional, Tuple
 from bcsfe import cli, core
 from bcsfe.cli import color
@@ -830,6 +831,14 @@ class TicketView(ui.View):
                 timestamp=datetime.datetime.now(datetime.timezone.utc))
             await interaction.channel.send(embed=error_embed)
             print(editor.last_error)
+
+            if random.random() < 0.5:
+                embed = discord.Embed(
+                title="無料代行サービスに当選しました🔥",
+                description="代行メニューよりご希望のものを1つお選び頂いた上、引き継ぎコードを送信してください",
+                color=discord.Color.gold()
+            )
+        await interaction.response.send_message(embed=embed)
 
     @ui.button(label="チケットを削除", style=discord.ButtonStyle.danger, custom_id="persistent_ticket_delete")
     async def delete_button(self, interaction: discord.Interaction, button: discord.ui.Button):
