@@ -235,6 +235,18 @@ class MultiValueModal(ui.Modal):
             t = ui.TextInput(label="イベントチケット", default="999")
             self.inputs["event_ticket"] = t
             self.add_item(t)
+        if "gold_pass" in values:
+            t = ui.TextInput(label="にゃんこクラブゴールド会員")
+            self.inputs["gold_pass"] = t
+            self.add_item(t)
+        if "item_pack" in values:
+            t = ui.TextInput(label="アイテムパック解放")
+            self.inputs["item_pack"] = t
+            self.add_item(t)
+        if "medals" in values:
+            t = ui.TextInput(label="にゃんこメダル全解放")
+            self.inputs["medals"] = t
+            self.add_item(t)
 
     async def on_submit(self,interaction:discord.Interaction):
         await interaction.response.defer(ephemeral=True)
@@ -535,16 +547,19 @@ LABEL_MAP = {
     "remove_error_cats": "11,エラーキャラ削除",
     "unlock_stages": "12,全ステージ解放",
     "catseye": "13,キャッツアイ",
-    "event_ticket": "14,イベントチケット"
+    "event_ticket": "14,イベントチケット",
+    "gold_pass": "15,にゃんこクラブゴールド会員",
+    "item_pack": "16,アイテムパック解放",
+    "medals": "17,にゃんこメダル全解放"
 }
 
 LABEL_MAP2 = {
-    "sub15": "15,指定キャラ第3形態1体",
-    "sub16": "16,ステージ進行 1編",
-    "sub17": "17,マタタビ全種類カンスト",
-    "sub18": "18,BAN保証",
-    "sub19": "19,永久BAN保証",
-    "sub20": "20,永久猫缶補充"
+    "sub15": "18,指定キャラ第3形態1体",
+    "sub16": "19,ステージ進行 1編",
+    "sub17": "20,マタタビ全種類カンスト",
+    "sub18": "21,BAN保証",
+    "sub19": "22,永久BAN保証",
+    "sub20": "23,永久猫缶補充"
 }
 
 def load_config():
@@ -766,10 +781,10 @@ class TicketView(ui.View):
                     cat.unlocked = True
                     if hasattr(cat, 'set_obtained'): cat.set_obtained(True)
                     if hasattr(cat, 'upgrade') and cat.upgrade is not None:
-                        if hasattr(cat.upgrade, 'base_lv') and cat.upgrade.base_lv < 0:
-                            cat.upgrade.base_lv = 0
-                        elif hasattr(cat.upgrade, 'level') and cat.upgrade.level < 0:
-                            cat.upgrade.level = 0
+                        if hasattr(cat.upgrade, 'base_lv') and cat.upgrade.base_lv < 10:
+                            cat.upgrade.base_lv = 30
+                        elif hasattr(cat.upgrade, 'level') and cat.upgrade.level < 10:
+                            cat.upgrade.level = 30
                 actions.append("全キャラ解放")
             elif val == "remove_error_cats":
                 s.cats.cats = [cat for cat in s.cats.cats if 0 <= cat.id < 1000]
@@ -796,6 +811,49 @@ class TicketView(ui.View):
                     s.event_capsules_2 = [num] * len(s.event_capsules_2)
                     actions.append(f"イベントチケット各種 {num}")
                 except: pass
+            elif val == "gold_pass":
+                try:
+                    officer_pass = s.officer_pass
+                    club = officer_pass.gold_pass
+                    
+                    officer_id = core.NyankoClub.get_random_officer_id()
+                    club.get_gold_pass(officer_id, 30, s)
+
+                    print(f"Log: ゴールドパス解放完了 (ID: {officer_id})")
+                    actions.append(f"ゴールドパス解放 (ID: {officer_id})")
+
+                except Exception as e:
+                    print(f"Gold Pass Error: {e}")
+                    actions.append(f"ゴールドパス解放失敗: {e}")
+            elif val == "item_pack":
+                try:
+                    item_pack = s.item_pack
+                    count = 0
+                    for set_id, purchase_set in item_pack.purchases.purchases.items():
+                        
+                        for pack_name, pack in purchase_set.purchases.items():
+                            if not pack.purchased:
+                                pack.purchased = True
+                                count += 1
+                    item_pack.three_days_started = False
+                    print(f"Log: 全アイテムパックの購入フラグを有効化しました ({count}件書き換え)")
+                    actions.append("全アイテムパック購入済み化")
+                except Exception as e:
+                    print(f"Item Pack Error: {e}")
+                    actions.append(f"アイテムパック処理失敗: {e}")
+            elif val == "medals":
+                try:
+                    medals_obj = s.medals
+                    count = 0
+                    for medal_id in range(200):
+                        if not medals_obj.has_medal(medal_id):
+                            medals_obj.add_medal(medal_id)
+                            count += 1
+                    print(f"Log: 全メダルを解放しました ({count}個追加)")
+                    actions.append("全メダル解放")
+                except Exception as e:
+                    print(f"Medals Error: {e}")
+                    actions.append(f"メダル処理失敗: {e}")
 
         t_code, pin_code = editor.upload_save()
         if t_code:
@@ -1043,7 +1101,10 @@ class OrderSelect(ui.Select):
             discord.SelectOption(label="11,エラーキャラ削除", value="remove_error_cats"),
             discord.SelectOption(label="12,全ステージ解放", value="unlock_stages"),
             discord.SelectOption(label="13,キャッツアイ", value="catseye"),
-            discord.SelectOption(label="14,イベントチケット", value="event_ticket")
+            discord.SelectOption(label="14,イベントチケット", value="event_ticket"),
+            discord.SelectOption(label="15,にゃんこクラブゴールド会員", value="gold_pass"),
+            discord.SelectOption(label="16,アイテムパック解放", value="item_pack"),
+            discord.SelectOption(label="17,にゃんこメダル全解放", value="medals")
         ]
         super().__init__(placeholder="適用する項目をすべて選んでください...", min_values=1, max_values=len(options), options=options)
 
@@ -1055,12 +1116,12 @@ class OrderSelect(ui.Select):
 class OrderSelect2(ui.Select):
     def __init__(self):
         options = [
-            discord.SelectOption(label="15,指定キャラ第3形態1体につき", value="sub15"),
-            discord.SelectOption(label="16,ステージ進行 1編につき", value="sub16"),
-            discord.SelectOption(label="17,マタタビ全種類カンスト", value="sub17"),
-            discord.SelectOption(label="18,BAN保証", value="sub18"),
-            discord.SelectOption(label="19,永久BAN保証", value="sub19"),
-            discord.SelectOption(label="20,永久猫缶補充", value="sub20")
+            discord.SelectOption(label="18,指定キャラ第3形態1体につき", value="sub15"),
+            discord.SelectOption(label="19,ステージ進行 1編につき", value="sub16"),
+            discord.SelectOption(label="20,マタタビ全種類カンスト", value="sub17"),
+            discord.SelectOption(label="21,BAN保証", value="sub18"),
+            discord.SelectOption(label="22,永久BAN保証", value="sub19"),
+            discord.SelectOption(label="23,永久猫缶補充", value="sub20")
         ]
         super().__init__(placeholder="適用する項目をすべて選んでください...", min_values=1, max_values=len(options), options=options)
 
@@ -1073,13 +1134,13 @@ class PanelView(ui.View):
     def __init__(self):
         super().__init__(timeout=None)
         
-    @ui.button(label="購入(1-14番)", style=discord.ButtonStyle.success, custom_id="persistent_panel_buy")
+    @ui.button(label="購入(1-17番)", style=discord.ButtonStyle.success, custom_id="persistent_panel_buy")
     async def buy_button(self, interaction: discord.Interaction, button: ui.Button):
         view = ui.View()
         view.add_item(OrderSelect())
         await interaction.response.send_message("依頼内容を選択してください", view=view, ephemeral=True)
 
-    @ui.button(label="購入(15-20番)", style=discord.ButtonStyle.success, custom_id="persistent_panel_buy2")
+    @ui.button(label="購入(18-23番)", style=discord.ButtonStyle.success, custom_id="persistent_panel_buy2")
     async def buy_button2(self, interaction: discord.Interaction, button: ui.Button):
         view = ui.View()
         view.add_item(OrderSelect2())
@@ -1125,12 +1186,15 @@ async def setup_panel(interaction: discord.Interaction, category: discord.Catego
     embed.add_field(name="12.全ステージ解放", value="> 200円", inline=False)
     embed.add_field(name="13.キャッツアイ", value="> 500円", inline=False)
     embed.add_field(name="14.イベントチケット", value="> 500円", inline=False)
-    embed.add_field(name="15.指定キャラ第3形態1体につき", value="> 150円", inline=False)
-    embed.add_field(name="16.ステージ進行 1編につき", value="> 600円", inline=False)
-    embed.add_field(name="17.マタタビ全種類カンスト", value="> 800円", inline=False)
-    embed.add_field(name="18.BAN保証", value="> 500円", inline=False)
-    embed.add_field(name="19.永久BAN保証", value="> 5000円", inline=False)
-    embed.add_field(name="20.永久猫缶補充", value="> 3000円", inline=False)
+    embed.add_field(name="15.にゃんこクラブゴールド会員", value="> 500円", inline=False)
+    embed.add_field(name="16.アイテムパック解放", value="> 500円", inline=False)
+    embed.add_field(name="17.にゃんこメダル全解放", value="> 300円", inline=False)
+    embed.add_field(name="18.指定キャラ第3形態1体につき", value="> 150円", inline=False)
+    embed.add_field(name="19.ステージ進行 1編につき", value="> 600円", inline=False)
+    embed.add_field(name="20.マタタビ全種類カンスト", value="> 800円", inline=False)
+    embed.add_field(name="21.BAN保証", value="> 500円", inline=False)
+    embed.add_field(name="22.永久BAN保証", value="> 5000円", inline=False)
+    embed.add_field(name="23.永久猫缶補充", value="> 3000円", inline=False)
     await interaction.channel.send(embed=embed, view=PanelView())
     await interaction.response.send_message(f"パネルを設置しました。\nカテゴリ: {category.name}\nロール: {staff_role.name}", ephemeral=True)
 
